@@ -43,7 +43,7 @@ y = dataset_bank_2["Personal Loan"]
 
 xTrain, xTest, yTrain, yTest = train_test_split(X,y, test_size=0.25)
 
-xTrain, xTest, yTrain, yTest = train_test_split(X,y, test_size=0.25)
+Logistic = sm.Logit(yTain, xTrain)
 
 result = Logistic.fit()
 Optimization terminated successfully.
