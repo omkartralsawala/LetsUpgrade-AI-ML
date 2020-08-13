@@ -44,3 +44,48 @@ y = dataset_bank_2["Personal Loan"]
 xTrain, xTest, yTrain, yTest = train_test_split(X,y, test_size=0.25)
 
 xTrain, xTest, yTrain, yTest = train_test_split(X,y, test_size=0.25)
+
+result = Logistic.fit()
+Optimization terminated successfully.
+         Current function value: 0.125212
+         Iterations 9
+
+result.summary()
+Out[4]: 
+<class 'statsmodels.iolib.summary.Summary'>
+"""
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:          Personal Loan   No. Observations:                 3750
+Model:                          Logit   Df Residuals:                     3738
+Method:                           MLE   Df Model:                           11
+Date:                Fri, 14 Aug 2020   Pseudo R-squ.:                  0.6018
+Time:                        01:43:27   Log-Likelihood:                -469.55
+converged:                       True   LL-Null:                       -1179.0
+Covariance Type:            nonrobust   LLR p-value:                9.785e-298
+======================================================================================
+                         coef    std err          z      P>|z|      [0.025      0.975]
+--------------------------------------------------------------------------------------
+const                -12.2212      1.877     -6.510      0.000     -15.901      -8.542
+Age                   -0.0563      0.070     -0.807      0.420      -0.193       0.080
+Experience             0.0640      0.069      0.925      0.355      -0.072       0.200
+Income                 0.0543      0.003     17.796      0.000       0.048       0.060
+Family                 0.6979      0.087      7.988      0.000       0.527       0.869
+CCAvg                  0.1522      0.048      3.204      0.001       0.059       0.245
+Education              1.7602      0.135     13.000      0.000       1.495       2.026
+Mortgage               0.0004      0.001      0.543      0.587      -0.001       0.002
+Securities Account    -0.8182      0.329     -2.489      0.013      -1.463      -0.174
+CD Account             4.0541      0.386     10.497      0.000       3.297       4.811
+Online                -0.6425      0.183     -3.502      0.000      -1.002      -0.283
+CreditCard            -1.2494      0.250     -5.000      0.000      -1.739      -0.760
+======================================================================================
+"""
+
+The most significant inndepenndent variables are 
+* Income
+* family
+* CCAvg
+* Education
+* CD Account
+* Online
+* CreditCard
