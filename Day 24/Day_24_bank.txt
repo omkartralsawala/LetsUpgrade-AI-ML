@@ -1,0 +1,354 @@
+import pandas as pd
+
+import numpy as np
+
+from sklearn import tree
+
+from sklearn import preprocessing
+
+from sklearn.ensemble import RandomForestClassifier
+
+label_encoder = preprocessing.LabelEncoder()
+
+dataset_bank = pd.read_excel("Bank_Personal_Loan_Modelling.xlsx", sheet_name=1)
+
+dataset_bank.head()
+Out[8]: 
+   ID  Age  Experience  ...  CD Account  Online  CreditCard
+0   1   25           1  ...           0       0           0
+1   2   45          19  ...           0       0           0
+2   3   39          15  ...           0       0           0
+3   4   35           9  ...           0       0           0
+4   5   35           8  ...           0       0           1
+
+[5 rows x 14 columns]
+
+dataset_bank.columns
+Out[9]: 
+Index(['ID', 'Age', 'Experience', 'Income', 'ZIP Code', 'Family', 'CCAvg',
+       'Education', 'Mortgage', 'Personal Loan', 'Securities Account',
+       'CD Account', 'Online', 'CreditCard'],
+      dtype='object')
+
+dataset_bank_2 = dataset_bank.drop(["ID", "ZIP Code"], axis=1)
+
+dataset_bank_2.describe().T
+Out[11]: 
+                     count       mean         std  ...   50%    75%    max
+Age                 5000.0  45.338400   11.463166  ...  45.0   55.0   67.0
+Experience          5000.0  20.104600   11.467954  ...  20.0   30.0   43.0
+Income              5000.0  73.774200   46.033729  ...  64.0   98.0  224.0
+Family              5000.0   2.396400    1.147663  ...   2.0    3.0    4.0
+CCAvg               5000.0   1.937913    1.747666  ...   1.5    2.5   10.0
+Education           5000.0   1.881000    0.839869  ...   2.0    3.0    3.0
+Mortgage            5000.0  56.498800  101.713802  ...   0.0  101.0  635.0
+Personal Loan       5000.0   0.096000    0.294621  ...   0.0    0.0    1.0
+Securities Account  5000.0   0.104400    0.305809  ...   0.0    0.0    1.0
+CD Account          5000.0   0.060400    0.238250  ...   0.0    0.0    1.0
+Online              5000.0   0.596800    0.490589  ...   1.0    1.0    1.0
+CreditCard          5000.0   0.294000    0.455637  ...   0.0    1.0    1.0
+
+[12 rows x 8 columns]
+
+dataset_bank_2.isnull().sum()
+Out[12]: 
+Age                   0
+Experience            0
+Income                0
+Family                0
+CCAvg                 0
+Education             0
+Mortgage              0
+Personal Loan         0
+Securities Account    0
+CD Account            0
+Online                0
+CreditCard            0
+dtype: int64
+
+dataset_bank_2.duplicated()
+Out[13]: 
+0       False
+1       False
+2       False
+3       False
+4       False
+ 
+4995    False
+4996    False
+4997    False
+4998    False
+4999    False
+Length: 5000, dtype: bool
+
+dataset_bank_2.duplicated().sum()
+Out[14]: 13
+
+dataset_bank_2.drop_duplicates()
+Out[15]: 
+      Age  Experience  Income  ...  CD Account  Online  CreditCard
+0      25           1      49  ...           0       0           0
+1      45          19      34  ...           0       0           0
+2      39          15      11  ...           0       0           0
+3      35           9     100  ...           0       0           0
+4      35           8      45  ...           0       0           1
+  ...         ...     ...  ...         ...     ...         ...
+4995   29           3      40  ...           0       1           0
+4996   30           4      15  ...           0       1           0
+4997   63          39      24  ...           0       0           0
+4998   65          40      49  ...           0       1           0
+4999   28           4      83  ...           0       1           1
+
+[4987 rows x 12 columns]
+
+dataset_bank_2.duplicated().sum()
+Out[16]: 13
+
+dataset_3 = dataset_bank_2.drop_duplicates()
+
+dataset_3.duplicated().sum()
+Out[18]: 0
+
+rf_model = RandomForestClassifier(n_estimators=1000, max_features=2, oob_score=True)
+
+from sklearn.model_selection import train_test_split
+
+dataset_3.columns
+Out[21]: 
+Index(['Age', 'Experience', 'Income', 'Family', 'CCAvg', 'Education',
+       'Mortgage', 'Personal Loan', 'Securities Account', 'CD Account',
+       'Online', 'CreditCard'],
+      dtype='object')
+
+features = ['Age', 'Experience', 'Income', 'Family', 'CCAvg', 'Education','Mortgage', 'Securities Account', 'CD Account','Online', 'CreditCard']
+
+X= dataset_3[features]
+
+y = dataset_3["Personal Loan"]
+
+xTrain, xTest, yTrain, yTest = train_test_split(X, y, test_size=0.25)
+
+rf_model.fit(X=xTrain, y=yTrain)
+Out[26]: 
+RandomForestClassifier(bootstrap=True, ccp_alpha=0.0, class_weight=None,
+                       criterion='gini', max_depth=None, max_features=2,
+                       max_leaf_nodes=None, max_samples=None,
+                       min_impurity_decrease=0.0, min_impurity_split=None,
+                       min_samples_leaf=1, min_samples_split=2,
+                       min_weight_fraction_leaf=0.0, n_estimators=1000,
+                       n_jobs=None, oob_score=True, random_state=None,
+                       verbose=0, warm_start=False)
+
+rf_model.oob_score_
+Out[27]: 0.9868983957219252
+
+for feature, imp in zip(features, rf_model.feature_importances_):
+    print(feature, imp)
+    
+Age 0.04689719291798721
+Experience 0.0452201231860008
+Income 0.3319755300404602
+Family 0.09577787916500696
+CCAvg 0.19367474490902367
+Education 0.15105006383060904
+Mortgage 0.05030545371157937
+Securities Account 0.006082091973861157
+CD Account 0.059954859152313925
+Online 0.008888520511226943
+CreditCard 0.010173540601930674
+
+Important independant Variables are
+* Income
+* CCAvg
+* Education
+
+
+tree_model = tree.DecisionTreeClassifier(max_depth= 6)
+
+predectors = pd.DataFrame([dataset_3["Income"], dataset_3["CCAvg"], dataset_3["Education"]]).T
+
+y = dataset_3["Personal Loan"]
+
+tree_model.fit(X=predectors, y=y)
+Out[40]: 
+DecisionTreeClassifier(ccp_alpha=0.0, class_weight=None, criterion='gini',
+                       max_depth=6, max_features=None, max_leaf_nodes=None,
+                       min_impurity_decrease=0.0, min_impurity_split=None,
+                       min_samples_leaf=1, min_samples_split=2,
+                       min_weight_fraction_leaf=0.0, presort='deprecated',
+                       random_state=None, splitter='best')
+
+with open("Day_24_bank.dot", 'w') as f:
+    f = tree.export_graphviz(tree_model, out_file=f, feature_names=["Income", "CCAvg", "Education"]);
+    
+
+DTree
+
+digraph Tree {
+node [shape=box] ;
+0 [label="Income <= 113.5\ngini = 0.174\nsamples = 4987\nvalue = [4507, 480]"] ;
+1 [label="CCAvg <= 2.95\ngini = 0.041\nsamples = 4009\nvalue = [3925, 84]"] ;
+0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+2 [label="Income <= 106.5\ngini = 0.007\nsamples = 3711\nvalue = [3698, 13]"] ;
+1 -> 2 ;
+3 [label="gini = 0.0\nsamples = 3617\nvalue = [3617, 0]"] ;
+2 -> 3 ;
+4 [label="Education <= 1.5\ngini = 0.238\nsamples = 94\nvalue = [81, 13]"] ;
+2 -> 4 ;
+5 [label="CCAvg <= 0.35\ngini = 0.127\nsamples = 44\nvalue = [41, 3]"] ;
+4 -> 5 ;
+6 [label="CCAvg <= 0.25\ngini = 0.32\nsamples = 10\nvalue = [8, 2]"] ;
+5 -> 6 ;
+7 [label="gini = 0.219\nsamples = 8\nvalue = [7, 1]"] ;
+6 -> 7 ;
+8 [label="gini = 0.5\nsamples = 2\nvalue = [1, 1]"] ;
+6 -> 8 ;
+9 [label="Income <= 109.5\ngini = 0.057\nsamples = 34\nvalue = [33, 1]"] ;
+5 -> 9 ;
+10 [label="gini = 0.153\nsamples = 12\nvalue = [11, 1]"] ;
+9 -> 10 ;
+11 [label="gini = 0.0\nsamples = 22\nvalue = [22, 0]"] ;
+9 -> 11 ;
+12 [label="CCAvg <= 1.65\ngini = 0.32\nsamples = 50\nvalue = [40, 10]"] ;
+4 -> 12 ;
+13 [label="CCAvg <= 0.3\ngini = 0.457\nsamples = 17\nvalue = [11, 6]"] ;
+12 -> 13 ;
+14 [label="gini = 0.0\nsamples = 3\nvalue = [3, 0]"] ;
+13 -> 14 ;
+15 [label="gini = 0.49\nsamples = 14\nvalue = [8, 6]"] ;
+13 -> 15 ;
+16 [label="Income <= 108.5\ngini = 0.213\nsamples = 33\nvalue = [29, 4]"] ;
+12 -> 16 ;
+17 [label="gini = 0.5\nsamples = 4\nvalue = [2, 2]"] ;
+16 -> 17 ;
+18 [label="gini = 0.128\nsamples = 29\nvalue = [27, 2]"] ;
+16 -> 18 ;
+19 [label="Income <= 82.5\ngini = 0.363\nsamples = 298\nvalue = [227, 71]"] ;
+1 -> 19 ;
+20 [label="CCAvg <= 3.55\ngini = 0.142\nsamples = 117\nvalue = [108, 9]"] ;
+19 -> 20 ;
+21 [label="CCAvg <= 3.45\ngini = 0.269\nsamples = 50\nvalue = [42, 8]"] ;
+20 -> 21 ;
+22 [label="CCAvg <= 3.25\ngini = 0.245\nsamples = 49\nvalue = [42, 7]"] ;
+21 -> 22 ;
+23 [label="gini = 0.188\nsamples = 38\nvalue = [34, 4]"] ;
+22 -> 23 ;
+24 [label="gini = 0.397\nsamples = 11\nvalue = [8, 3]"] ;
+22 -> 24 ;
+25 [label="gini = 0.0\nsamples = 1\nvalue = [0, 1]"] ;
+21 -> 25 ;
+26 [label="Income <= 81.5\ngini = 0.029\nsamples = 67\nvalue = [66, 1]"] ;
+20 -> 26 ;
+27 [label="gini = 0.0\nsamples = 60\nvalue = [60, 0]"] ;
+26 -> 27 ;
+28 [label="CCAvg <= 3.75\ngini = 0.245\nsamples = 7\nvalue = [6, 1]"] ;
+26 -> 28 ;
+29 [label="gini = 0.444\nsamples = 3\nvalue = [2, 1]"] ;
+28 -> 29 ;
+30 [label="gini = 0.0\nsamples = 4\nvalue = [4, 0]"] ;
+28 -> 30 ;
+31 [label="Education <= 1.5\ngini = 0.45\nsamples = 181\nvalue = [119, 62]"] ;
+19 -> 31 ;
+32 [label="CCAvg <= 4.25\ngini = 0.299\nsamples = 93\nvalue = [76, 17]"] ;
+31 -> 32 ;
+33 [label="CCAvg <= 4.05\ngini = 0.44\nsamples = 46\nvalue = [31, 15]"] ;
+32 -> 33 ;
+34 [label="gini = 0.402\nsamples = 43\nvalue = [31, 12]"] ;
+33 -> 34 ;
+35 [label="gini = 0.0\nsamples = 3\nvalue = [0, 3]"] ;
+33 -> 35 ;
+36 [label="CCAvg <= 4.65\ngini = 0.081\nsamples = 47\nvalue = [45, 2]"] ;
+32 -> 36 ;
+37 [label="gini = 0.188\nsamples = 19\nvalue = [17, 2]"] ;
+36 -> 37 ;
+38 [label="gini = 0.0\nsamples = 28\nvalue = [28, 0]"] ;
+36 -> 38 ;
+39 [label="Income <= 92.5\ngini = 0.5\nsamples = 88\nvalue = [43, 45]"] ;
+31 -> 39 ;
+40 [label="Education <= 2.5\ngini = 0.388\nsamples = 38\nvalue = [28, 10]"] ;
+39 -> 40 ;
+41 [label="gini = 0.5\nsamples = 10\nvalue = [5, 5]"] ;
+40 -> 41 ;
+42 [label="gini = 0.293\nsamples = 28\nvalue = [23, 5]"] ;
+40 -> 42 ;
+43 [label="CCAvg <= 4.6\ngini = 0.42\nsamples = 50\nvalue = [15, 35]"] ;
+39 -> 43 ;
+44 [label="gini = 0.459\nsamples = 42\nvalue = [15, 27]"] ;
+43 -> 44 ;
+45 [label="gini = 0.0\nsamples = 8\nvalue = [0, 8]"] ;
+43 -> 45 ;
+46 [label="Education <= 1.5\ngini = 0.482\nsamples = 978\nvalue = [582, 396]"] ;
+0 -> 46 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+47 [label="CCAvg <= 6.633\ngini = 0.194\nsamples = 635\nvalue = [566, 69]"] ;
+46 -> 47 ;
+48 [label="CCAvg <= 6.55\ngini = 0.225\nsamples = 502\nvalue = [437, 65]"] ;
+47 -> 48 ;
+49 [label="CCAvg <= 4.05\ngini = 0.22\nsamples = 500\nvalue = [437, 63]"] ;
+48 -> 49 ;
+50 [label="Income <= 159.5\ngini = 0.177\nsamples = 346\nvalue = [312, 34]"] ;
+49 -> 50 ;
+51 [label="gini = 0.128\nsamples = 263\nvalue = [245, 18]"] ;
+50 -> 51 ;
+52 [label="gini = 0.311\nsamples = 83\nvalue = [67, 16]"] ;
+50 -> 52 ;
+53 [label="Income <= 179.5\ngini = 0.306\nsamples = 154\nvalue = [125, 29]"] ;
+49 -> 53 ;
+54 [label="gini = 0.349\nsamples = 129\nvalue = [100, 29]"] ;
+53 -> 54 ;
+55 [label="gini = 0.0\nsamples = 25\nvalue = [25, 0]"] ;
+53 -> 55 ;
+56 [label="gini = 0.0\nsamples = 2\nvalue = [0, 2]"] ;
+48 -> 56 ;
+57 [label="Income <= 176.5\ngini = 0.058\nsamples = 133\nvalue = [129, 4]"] ;
+47 -> 57 ;
+58 [label="CCAvg <= 6.95\ngini = 0.02\nsamples = 99\nvalue = [98, 1]"] ;
+57 -> 58 ;
+59 [label="CCAvg <= 6.85\ngini = 0.077\nsamples = 25\nvalue = [24, 1]"] ;
+58 -> 59 ;
+60 [label="gini = 0.0\nsamples = 15\nvalue = [15, 0]"] ;
+59 -> 60 ;
+61 [label="gini = 0.18\nsamples = 10\nvalue = [9, 1]"] ;
+59 -> 61 ;
+62 [label="gini = 0.0\nsamples = 74\nvalue = [74, 0]"] ;
+58 -> 62 ;
+63 [label="Income <= 178.5\ngini = 0.161\nsamples = 34\nvalue = [31, 3]"] ;
+57 -> 63 ;
+64 [label="CCAvg <= 7.6\ngini = 0.5\nsamples = 2\nvalue = [1, 1]"] ;
+63 -> 64 ;
+65 [label="gini = 0.0\nsamples = 1\nvalue = [1, 0]"] ;
+64 -> 65 ;
+66 [label="gini = 0.0\nsamples = 1\nvalue = [0, 1]"] ;
+64 -> 66 ;
+67 [label="CCAvg <= 8.05\ngini = 0.117\nsamples = 32\nvalue = [30, 2]"] ;
+63 -> 67 ;
+68 [label="gini = 0.26\nsamples = 13\nvalue = [11, 2]"] ;
+67 -> 68 ;
+69 [label="gini = 0.0\nsamples = 19\nvalue = [19, 0]"] ;
+67 -> 69 ;
+70 [label="Income <= 116.5\ngini = 0.089\nsamples = 343\nvalue = [16, 327]"] ;
+46 -> 70 ;
+71 [label="CCAvg <= 2.15\ngini = 0.495\nsamples = 29\nvalue = [16, 13]"] ;
+70 -> 71 ;
+72 [label="CCAvg <= 0.55\ngini = 0.278\nsamples = 12\nvalue = [10, 2]"] ;
+71 -> 72 ;
+73 [label="gini = 0.0\nsamples = 1\nvalue = [0, 1]"] ;
+72 -> 73 ;
+74 [label="CCAvg <= 1.1\ngini = 0.165\nsamples = 11\nvalue = [10, 1]"] ;
+72 -> 74 ;
+75 [label="gini = 0.0\nsamples = 6\nvalue = [6, 0]"] ;
+74 -> 75 ;
+76 [label="gini = 0.32\nsamples = 5\nvalue = [4, 1]"] ;
+74 -> 76 ;
+77 [label="CCAvg <= 4.0\ngini = 0.457\nsamples = 17\nvalue = [6, 11]"] ;
+71 -> 77 ;
+78 [label="CCAvg <= 3.35\ngini = 0.497\nsamples = 13\nvalue = [6, 7]"] ;
+77 -> 78 ;
+79 [label="gini = 0.444\nsamples = 9\nvalue = [3, 6]"] ;
+78 -> 79 ;
+80 [label="gini = 0.375\nsamples = 4\nvalue = [3, 1]"] ;
+78 -> 80 ;
+81 [label="gini = 0.0\nsamples = 4\nvalue = [0, 4]"] ;
+77 -> 81 ;
+82 [label="gini = 0.0\nsamples = 314\nvalue = [0, 314]"] ;
+70 -> 82 ;
+}
