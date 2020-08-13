@@ -11,15 +11,6 @@ from sklearn.ensemble import RandomForestClassifier
 
 dataset_attrition = pd.read_csv("general_data.csv")
 
-dataset_1 = dataset.drop(['BusinessTravel', 'Department','EducationField', 'EmployeeCount', 'EmployeeID','JobLevel',  'MaritalStatus', 'NumCompaniesWorked', 'Over18', 'PercentSalaryHike', 'StandardHours','StockOptionLevel','TrainingTimesLastYear','YearsWithCurrManager'],axis=1)
-Traceback (most recent call last):
-
-  File "<ipython-input-7-d635d25fa0f4>", line 1, in <module>
-    dataset_1 = dataset.drop(['BusinessTravel', 'Department','EducationField', 'EmployeeCount', 'EmployeeID','JobLevel',  'MaritalStatus', 'NumCompaniesWorked', 'Over18', 'PercentSalaryHike', 'StandardHours','StockOptionLevel','TrainingTimesLastYear','YearsWithCurrManager'],axis=1)
-
-NameError: name 'dataset' is not defined
-
-
 dataset_1 = dataset_attrition.drop(['BusinessTravel', 'Department','EducationField', 'EmployeeCount', 'EmployeeID','JobLevel',  'MaritalStatus', 'NumCompaniesWorked', 'Over18', 'PercentSalaryHike', 'StandardHours','StockOptionLevel','TrainingTimesLastYear','YearsWithCurrManager'],axis=1)
 
 label_encoder = preprocessing.LabelEncoder()
