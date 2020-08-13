@@ -1,0 +1,245 @@
+
+import pandas as pd
+
+import numpy as np
+
+from sklearn import tree
+
+from sklearn import preprocessing
+
+from sklearn.ensemble import RandomForestClassifier
+
+dataset_attrition = pd.read_csv("general_data.csv")
+
+dataset_1 = dataset.drop(['BusinessTravel', 'Department','EducationField', 'EmployeeCount', 'EmployeeID','JobLevel',  'MaritalStatus', 'NumCompaniesWorked', 'Over18', 'PercentSalaryHike', 'StandardHours','StockOptionLevel','TrainingTimesLastYear','YearsWithCurrManager'],axis=1)
+Traceback (most recent call last):
+
+  File "<ipython-input-7-d635d25fa0f4>", line 1, in <module>
+    dataset_1 = dataset.drop(['BusinessTravel', 'Department','EducationField', 'EmployeeCount', 'EmployeeID','JobLevel',  'MaritalStatus', 'NumCompaniesWorked', 'Over18', 'PercentSalaryHike', 'StandardHours','StockOptionLevel','TrainingTimesLastYear','YearsWithCurrManager'],axis=1)
+
+NameError: name 'dataset' is not defined
+
+
+dataset_1 = dataset_attrition.drop(['BusinessTravel', 'Department','EducationField', 'EmployeeCount', 'EmployeeID','JobLevel',  'MaritalStatus', 'NumCompaniesWorked', 'Over18', 'PercentSalaryHike', 'StandardHours','StockOptionLevel','TrainingTimesLastYear','YearsWithCurrManager'],axis=1)
+
+label_encoder = preprocessing.LabelEncoder()
+
+dataset_1.isnull().sum()
+Out[10]: 
+Age                        0
+Attrition                  0
+DistanceFromHome           0
+Education                  0
+Gender                     0
+JobRole                    0
+MonthlyIncome              0
+TotalWorkingYears          9
+YearsAtCompany             0
+YearsSinceLastPromotion    0
+dtype: int64
+
+dataset_1["TotalWorkingYears"].mean()
+Out[11]: 11.279936378095888
+
+dataset_1["TotalWorkingYears"] = np.where(dataset_1["TotalWorkingYears"].isnull(), 11, dataset_1["TotalWorkingYears"])
+
+dataset_1["Attrition"] = label_encoder.fit_transform(dataset_1["Attrition"])
+
+dataset_2 = dataset_1.drop("JobRole", axis=1)
+
+dataset_2["Gender"] = label_encoder.fit_transform(dataset_2["Gender"])
+
+dataset_2.columns
+Out[16]: 
+Index(['Age', 'Attrition', 'DistanceFromHome', 'Education', 'Gender',
+       'MonthlyIncome', 'TotalWorkingYears', 'YearsAtCompany',
+       'YearsSinceLastPromotion'],
+      dtype='object')
+
+import statsmodels.api as sm
+
+from sklearn.model_selection import train_test_split
+
+X = dataset_2[['Age', 'DistanceFromHome', 'Education', 'Gender','MonthlyIncome', 'TotalWorkingYears', 'YearsAtCompany','YearsSinceLastPromotion']]
+
+Y = dataset_2["Attrition"]
+
+xTrain, xTest, yTrain, yTest = train_test_split(X,Y, test_size=0.25)
+
+rf_model = RandomForestClassifier(n_estimators=1000, max_features=2, oob_score= True)
+
+rf_model.fit(X=xTrain, y=yTrain)
+Out[23]: 
+RandomForestClassifier(bootstrap=True, ccp_alpha=0.0, class_weight=None,
+                       criterion='gini', max_depth=None, max_features=2,
+                       max_leaf_nodes=None, max_samples=None,
+                       min_impurity_decrease=0.0, min_impurity_split=None,
+                       min_samples_leaf=1, min_samples_split=2,
+                       min_weight_fraction_leaf=0.0, n_estimators=1000,
+                       n_jobs=None, oob_score=True, random_state=None,
+                       verbose=0, warm_start=False)
+
+rf_model.oob_score_
+Out[30]: 0.9933474448140308
+
+for features, imp in zip(['Age', 'DistanceFromHome', 'Education', 'Gender','MonthlyIncome', 'TotalWorkingYears', 'YearsAtCompany','YearsSinceLastPromotion'], rf_model.feature_importances_):
+    print(features, imp)
+    
+Age 0.18041215441777214
+DistanceFromHome 0.14743985805369875
+Education 0.07411105210714983
+Gender 0.03184744225753558
+MonthlyIncome 0.2367182295873123
+TotalWorkingYears 0.14670600797264985
+YearsAtCompany 0.11493877273355614
+YearsSinceLastPromotion 0.06782648287032542
+
+The most important factors are 
+
+*MonthlyIncome 
+*DistanceFromHome 
+*YearsAtCompany
+
+Dtree
+
+digraph Tree {
+node [shape=box] ;
+0 [label="YearsAtCompany <= 1.5\ngini = 0.27\nsamples = 4410\nvalue = [3699, 711]"] ;
+1 [label="MonthlyIncome <= 169460.0\ngini = 0.454\nsamples = 645\nvalue = [420, 225]"] ;
+0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+2 [label="MonthlyIncome <= 23905.0\ngini = 0.465\nsamples = 603\nvalue = [381, 222]"] ;
+1 -> 2 ;
+3 [label="MonthlyIncome <= 20105.0\ngini = 0.312\nsamples = 93\nvalue = [75, 18]"] ;
+2 -> 3 ;
+4 [label="DistanceFromHome <= 6.5\ngini = 0.49\nsamples = 21\nvalue = [12, 9]"] ;
+3 -> 4 ;
+5 [label="MonthlyIncome <= 11100.0\ngini = 0.48\nsamples = 15\nvalue = [6, 9]"] ;
+4 -> 5 ;
+6 [label="gini = 0.0\nsamples = 3\nvalue = [3, 0]"] ;
+5 -> 6 ;
+7 [label="gini = 0.375\nsamples = 12\nvalue = [3, 9]"] ;
+5 -> 7 ;
+8 [label="gini = 0.0\nsamples = 6\nvalue = [6, 0]"] ;
+4 -> 8 ;
+9 [label="MonthlyIncome <= 21480.0\ngini = 0.219\nsamples = 72\nvalue = [63, 9]"] ;
+3 -> 9 ;
+10 [label="gini = 0.0\nsamples = 24\nvalue = [24, 0]"] ;
+9 -> 10 ;
+11 [label="MonthlyIncome <= 21725.0\ngini = 0.305\nsamples = 48\nvalue = [39, 9]"] ;
+9 -> 11 ;
+12 [label="gini = 0.444\nsamples = 9\nvalue = [3, 6]"] ;
+11 -> 12 ;
+13 [label="gini = 0.142\nsamples = 39\nvalue = [36, 3]"] ;
+11 -> 13 ;
+14 [label="DistanceFromHome <= 2.5\ngini = 0.48\nsamples = 510\nvalue = [306, 204]"] ;
+2 -> 14 ;
+15 [label="MonthlyIncome <= 66895.0\ngini = 0.5\nsamples = 183\nvalue = [90, 93]"] ;
+14 -> 15 ;
+16 [label="MonthlyIncome <= 26050.0\ngini = 0.467\nsamples = 105\nvalue = [39, 66]"] ;
+15 -> 16 ;
+17 [label="gini = 0.0\nsamples = 9\nvalue = [0, 9]"] ;
+16 -> 17 ;
+18 [label="gini = 0.482\nsamples = 96\nvalue = [39, 57]"] ;
+16 -> 18 ;
+19 [label="MonthlyIncome <= 97215.0\ngini = 0.453\nsamples = 78\nvalue = [51, 27]"] ;
+15 -> 19 ;
+20 [label="gini = 0.18\nsamples = 30\nvalue = [27, 3]"] ;
+19 -> 20 ;
+21 [label="gini = 0.5\nsamples = 48\nvalue = [24, 24]"] ;
+19 -> 21 ;
+22 [label="MonthlyIncome <= 74975.0\ngini = 0.448\nsamples = 327\nvalue = [216, 111]"] ;
+14 -> 22 ;
+23 [label="MonthlyIncome <= 31000.0\ngini = 0.411\nsamples = 270\nvalue = [192, 78]"] ;
+22 -> 23 ;
+24 [label="gini = 0.5\nsamples = 54\nvalue = [27, 27]"] ;
+23 -> 24 ;
+25 [label="gini = 0.361\nsamples = 216\nvalue = [165, 51]"] ;
+23 -> 25 ;
+26 [label="MonthlyIncome <= 88440.0\ngini = 0.488\nsamples = 57\nvalue = [24, 33]"] ;
+22 -> 26 ;
+27 [label="gini = 0.0\nsamples = 12\nvalue = [0, 12]"] ;
+26 -> 27 ;
+28 [label="gini = 0.498\nsamples = 45\nvalue = [24, 21]"] ;
+26 -> 28 ;
+29 [label="DistanceFromHome <= 11.5\ngini = 0.133\nsamples = 42\nvalue = [39, 3]"] ;
+1 -> 29 ;
+30 [label="gini = 0.0\nsamples = 30\nvalue = [30, 0]"] ;
+29 -> 30 ;
+31 [label="DistanceFromHome <= 17.5\ngini = 0.375\nsamples = 12\nvalue = [9, 3]"] ;
+29 -> 31 ;
+32 [label="gini = 0.0\nsamples = 3\nvalue = [0, 3]"] ;
+31 -> 32 ;
+33 [label="gini = 0.0\nsamples = 9\nvalue = [9, 0]"] ;
+31 -> 33 ;
+34 [label="YearsAtCompany <= 4.5\ngini = 0.225\nsamples = 3765\nvalue = [3279, 486]"] ;
+0 -> 34 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+35 [label="DistanceFromHome <= 3.5\ngini = 0.296\nsamples = 1095\nvalue = [897, 198]"] ;
+34 -> 35 ;
+36 [label="MonthlyIncome <= 101740.0\ngini = 0.183\nsamples = 294\nvalue = [264, 30]"] ;
+35 -> 36 ;
+37 [label="MonthlyIncome <= 100385.0\ngini = 0.216\nsamples = 243\nvalue = [213, 30]"] ;
+36 -> 37 ;
+38 [label="MonthlyIncome <= 59150.0\ngini = 0.2\nsamples = 240\nvalue = [213, 27]"] ;
+37 -> 38 ;
+39 [label="gini = 0.163\nsamples = 201\nvalue = [183, 18]"] ;
+38 -> 39 ;
+40 [label="gini = 0.355\nsamples = 39\nvalue = [30, 9]"] ;
+38 -> 40 ;
+41 [label="gini = 0.0\nsamples = 3\nvalue = [0, 3]"] ;
+37 -> 41 ;
+42 [label="gini = 0.0\nsamples = 51\nvalue = [51, 0]"] ;
+36 -> 42 ;
+43 [label="MonthlyIncome <= 170845.0\ngini = 0.331\nsamples = 801\nvalue = [633, 168]"] ;
+35 -> 43 ;
+44 [label="MonthlyIncome <= 36940.0\ngini = 0.309\nsamples = 738\nvalue = [597, 141]"] ;
+43 -> 44 ;
+45 [label="MonthlyIncome <= 36755.0\ngini = 0.38\nsamples = 282\nvalue = [210, 72]"] ;
+44 -> 45 ;
+46 [label="gini = 0.372\nsamples = 279\nvalue = [210, 69]"] ;
+45 -> 46 ;
+47 [label="gini = 0.0\nsamples = 3\nvalue = [0, 3]"] ;
+45 -> 47 ;
+48 [label="DistanceFromHome <= 23.5\ngini = 0.257\nsamples = 456\nvalue = [387, 69]"] ;
+44 -> 48 ;
+49 [label="gini = 0.293\nsamples = 387\nvalue = [318, 69]"] ;
+48 -> 49 ;
+50 [label="gini = 0.0\nsamples = 69\nvalue = [69, 0]"] ;
+48 -> 50 ;
+51 [label="MonthlyIncome <= 191960.0\ngini = 0.49\nsamples = 63\nvalue = [36, 27]"] ;
+43 -> 51 ;
+52 [label="DistanceFromHome <= 6.0\ngini = 0.498\nsamples = 45\nvalue = [21, 24]"] ;
+51 -> 52 ;
+53 [label="gini = 0.0\nsamples = 6\nvalue = [6, 0]"] ;
+52 -> 53 ;
+54 [label="gini = 0.473\nsamples = 39\nvalue = [15, 24]"] ;
+52 -> 54 ;
+55 [label="MonthlyIncome <= 197225.0\ngini = 0.278\nsamples = 18\nvalue = [15, 3]"] ;
+51 -> 55 ;
+56 [label="gini = 0.0\nsamples = 12\nvalue = [12, 0]"] ;
+55 -> 56 ;
+57 [label="gini = 0.5\nsamples = 6\nvalue = [3, 3]"] ;
+55 -> 57 ;
+58 [label="MonthlyIncome <= 10305.0\ngini = 0.192\nsamples = 2670\nvalue = [2382, 288]"] ;
+34 -> 58 ;
+59 [label="gini = 0.0\nsamples = 3\nvalue = [0, 3]"] ;
+58 -> 59 ;
+60 [label="YearsAtCompany <= 38.5\ngini = 0.191\nsamples = 2667\nvalue = [2382, 285]"] ;
+58 -> 60 ;
+61 [label="MonthlyIncome <= 75285.0\ngini = 0.189\nsamples = 2664\nvalue = [2382, 282]"] ;
+60 -> 61 ;
+62 [label="MonthlyIncome <= 74970.0\ngini = 0.211\nsamples = 1902\nvalue = [1674, 228]"] ;
+61 -> 62 ;
+63 [label="gini = 0.209\nsamples = 1899\nvalue = [1674, 225]"] ;
+62 -> 63 ;
+64 [label="gini = 0.0\nsamples = 3\nvalue = [0, 3]"] ;
+62 -> 64 ;
+65 [label="DistanceFromHome <= 19.5\ngini = 0.132\nsamples = 762\nvalue = [708, 54]"] ;
+61 -> 65 ;
+66 [label="gini = 0.111\nsamples = 660\nvalue = [621, 39]"] ;
+65 -> 66 ;
+67 [label="gini = 0.251\nsamples = 102\nvalue = [87, 15]"] ;
+65 -> 67 ;
+68 [label="gini = 0.0\nsamples = 3\nvalue = [0, 3]"] ;
+60 -> 68 ;
+}
+
