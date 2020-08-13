@@ -1,0 +1,192 @@
+import pandas as pd
+
+import numpy as np
+
+dataset = pd.read_excel("Bank_Personal_Loan_Modelling.xlsx",sheet_name=0)
+
+dataset.head()
+Out[5]: 
+   Unnamed: 0         Unnamed: 1 Unnamed: 2
+0         NaN                NaN        NaN
+1         NaN                NaN        NaN
+2         NaN                NaN        NaN
+3         NaN                NaN        NaN
+4         NaN  Data Description:        NaN
+
+dataset = pd.read_csv("general_data.csv")
+
+dataset.head()
+Out[7]: 
+   Age Attrition  ... YearsSinceLastPromotion YearsWithCurrManager
+0   51        No  ...                       0                    0
+1   31       Yes  ...                       1                    4
+2   32        No  ...                       0                    3
+3   38        No  ...                       7                    5
+4   32        No  ...                       0                    4
+
+[5 rows x 24 columns]
+
+dataset.columns
+Out[8]: 
+Index(['Age', 'Attrition', 'BusinessTravel', 'Department', 'DistanceFromHome',
+       'Education', 'EducationField', 'EmployeeCount', 'EmployeeID', 'Gender',
+       'JobLevel', 'JobRole', 'MaritalStatus', 'MonthlyIncome',
+       'NumCompaniesWorked', 'Over18', 'PercentSalaryHike', 'StandardHours',
+       'StockOptionLevel', 'TotalWorkingYears', 'TrainingTimesLastYear',
+       'YearsAtCompany', 'YearsSinceLastPromotion', 'YearsWithCurrManager'],
+      dtype='object')
+
+dataset_1 = dataset.drop(['BusinessTravel', 'Department','EducationField', 'EmployeeCount', 'EmployeeID','JobLevel',  'MaritalStatus', 'NumCompaniesWorked', 'Over18', 'PercentSalaryHike', 'StandardHours','StockOptionLevel','TrainingTimesLastYear','YearsWithCurrManager'],axis=1)
+
+dataset_1.head()
+Out[10]: 
+   Age Attrition  ...  YearsAtCompany  YearsSinceLastPromotion
+0   51        No  ...               1                        0
+1   31       Yes  ...               5                        1
+2   32        No  ...               5                        0
+3   38        No  ...               8                        7
+4   32        No  ...               6                        0
+
+[5 rows x 10 columns]
+
+from sklearn import preprocessing
+
+label_encoder = preprocessing.LabelEncoder()
+
+dataset_1.isnull().sum()
+Out[13]: 
+Age                        0
+Attrition                  0
+DistanceFromHome           0
+Education                  0
+Gender                     0
+JobRole                    0
+MonthlyIncome              0
+TotalWorkingYears          9
+YearsAtCompany             0
+YearsSinceLastPromotion    0
+dtype: int64
+
+dataset_1["TotalWorkingYears"].mean()
+Out[14]: 11.279936378095888
+
+dataset_1.fillna("bfill")
+Out[16]: 
+      Age Attrition  ...  YearsAtCompany  YearsSinceLastPromotion
+0      51        No  ...               1                        0
+1      31       Yes  ...               5                        1
+2      32        No  ...               5                        0
+3      38        No  ...               8                        7
+4      32        No  ...               6                        0
+  ...       ...  ...             ...                      ...
+4405   42        No  ...               3                        0
+4406   29        No  ...               3                        0
+4407   25        No  ...               4                        1
+4408   42        No  ...               9                        7
+4409   40        No  ...              21                        3
+
+[4410 rows x 10 columns]
+
+dataset_1.isnull().sum()
+Out[17]: 
+Age                        0
+Attrition                  0
+DistanceFromHome           0
+Education                  0
+Gender                     0
+JobRole                    0
+MonthlyIncome              0
+TotalWorkingYears          9
+YearsAtCompany             0
+YearsSinceLastPromotion    0
+dtype: int64
+
+dataset_1.isna().sum()
+Out[18]: 
+Age                        0
+Attrition                  0
+DistanceFromHome           0
+Education                  0
+Gender                     0
+JobRole                    0
+MonthlyIncome              0
+TotalWorkingYears          9
+YearsAtCompany             0
+YearsSinceLastPromotion    0
+dtype: int64
+
+dataset_1["TotalWorkingYears"] = np.where(dataset_1["TotalWorkingYears"].isnull(), 11, dataset_1["TotalWorkingYears"])
+
+dataset_1.isnull().sum()
+Out[20]: 
+Age                        0
+Attrition                  0
+DistanceFromHome           0
+Education                  0
+Gender                     0
+JobRole                    0
+MonthlyIncome              0
+TotalWorkingYears          0
+YearsAtCompany             0
+YearsSinceLastPromotion    0
+dtype: int64
+
+dataset_1["Attrition"] = label_encoder.fit_transform(dataset_1["Attrition"])
+
+dataset_2 = dataset_1.drop("JobRole", axis=1)
+
+dataset_2["Gender"] = label_encoder.fit_transform(dataset_2["Gender"])
+
+dataset_2.columns
+Out[24]: 
+Index(['Age', 'Attrition', 'DistanceFromHome', 'Education', 'Gender',
+       'MonthlyIncome', 'TotalWorkingYears', 'YearsAtCompany',
+       'YearsSinceLastPromotion'],
+      dtype='object')
+
+import statsmodels.api as sm
+
+X1 = sm.add_constant(dataset_2)
+
+X = dataset_2[['Age', 'DistanceFromHome', 'Education', 'Gender','MonthlyIncome', 'TotalWorkingYears', 'YearsAtCompany','YearsSinceLastPromotion']]
+
+X1 = sm.add_constant(X)
+
+Y = dataset_2.Attrition
+
+Logistic = sm.Logit(Y, X1)
+
+result = Logistic.fit()
+Optimization terminated successfully.
+         Current function value: 0.416749
+         Iterations 7
+
+result.summary()
+Out[32]: 
+<class 'statsmodels.iolib.summary.Summary'>
+"""
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:              Attrition   No. Observations:                 4410
+Model:                          Logit   Df Residuals:                     4401
+Method:                           MLE   Df Model:                            8
+Date:                Thu, 13 Aug 2020   Pseudo R-squ.:                 0.05648
+Time:                        15:31:54   Log-Likelihood:                -1837.9
+converged:                       True   LL-Null:                       -1947.9
+Covariance Type:            nonrobust   LLR p-value:                 3.808e-43
+===========================================================================================
+                              coef    std err          z      P>|z|      [0.025      0.975]
+-------------------------------------------------------------------------------------------
+const                       0.3133      0.253      1.238      0.216      -0.183       0.809
+Age                        -0.0291      0.007     -4.443      0.000      -0.042      -0.016
+DistanceFromHome           -0.0021      0.005     -0.406      0.685      -0.012       0.008
+Education                  -0.0561      0.041     -1.369      0.171      -0.136       0.024
+Gender                      0.0577      0.086      0.667      0.505      -0.112       0.227
+MonthlyIncome           -2.554e-06    9.3e-07     -2.745      0.006   -4.38e-06   -7.31e-07
+TotalWorkingYears          -0.0338      0.011     -3.184      0.001      -0.055      -0.013
+YearsAtCompany             -0.0875      0.015     -6.001      0.000      -0.116      -0.059
+YearsSinceLastPromotion     0.1180      0.020      5.964      0.000       0.079       0.157
+===========================================================================================
+"""
+
+
