@@ -1,0 +1,105 @@
+import pandas as pd
+
+import numpy as np
+
+from sklearn import preprocessing
+
+dataset = pd.read_csv("train.csv")
+
+dataset.isnull()
+Out[5]: 
+     PassengerId  Survived  Pclass   Name  ...  Ticket   Fare  Cabin  Embarked
+0          False     False   False  False  ...   False  False   True     False
+1          False     False   False  False  ...   False  False  False     False
+2          False     False   False  False  ...   False  False   True     False
+3          False     False   False  False  ...   False  False  False     False
+4          False     False   False  False  ...   False  False   True     False
+..           ...       ...     ...    ...  ...     ...    ...    ...       ...
+884        False     False   False  False  ...   False  False   True     False
+885        False     False   False  False  ...   False  False  False     False
+886        False     False   False  False  ...   False  False   True     False
+887        False     False   False  False  ...   False  False  False     False
+888        False     False   False  False  ...   False  False   True     False
+
+[889 rows x 12 columns]
+
+dataset.isnull().sum()
+Out[6]: 
+PassengerId      0
+Survived         0
+Pclass           0
+Name             0
+Sex              0
+Age              0
+SibSp            0
+Parch            0
+Ticket           0
+Fare             0
+Cabin          687
+Embarked         0
+dtype: int64
+
+dataset["Cabin"]
+Out[7]: 
+0       NaN
+1       C85
+2       NaN
+3      C123
+4       NaN
+
+884     NaN
+885     B42
+886     NaN
+887    C148
+888     NaN
+Name: Cabin, Length: 889, dtype: object
+
+dataset.columns
+Out[8]: 
+Index(['PassengerId', 'Survived', 'Pclass', 'Name', 'Sex', 'Age', 'SibSp',
+       'Parch', 'Ticket', 'Fare', 'Cabin', 'Embarked'],
+      dtype='object')
+
+dataset1 = dataset.drop(['PassengerId','Name','Ticket','Cabin'], axis=1)
+
+label_encoder = preprocessing.LabelEncoder()
+
+dataset1 = label_encoder.fit_transform(dataset1["Embarked"])
+
+dataset1 = dataset.drop(['PassengerId','Name','Ticket','Cabin'], axis=1)
+
+dataset1["Embarked"] = label_encoder.fit_transform(dataset1["Embarked"])
+
+from sklearn.model_selection import train_test_split
+
+from sklearn.naive_bayes import GaussianNB
+
+dataset1["Sex"] = label_encoder.fit_transform(dataset1["Sex"])
+
+from sklearn.metrics import accuracy_score , confusion_matrix
+
+dataset1.columns
+Out[19]: 
+Index(['Survived', 'Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare',
+       'Embarked'],
+      dtype='object')
+
+features = ['Survived', 'Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare']
+
+xTrain, xTest, yTrain, yTest = train_test_split(dataset1[features], dataset1["Embarked"], test_size=0.25)
+
+clf = BernoulliNB()
+
+y_pred = clf.fit(xTrain, yTrain).predict(xTest)
+
+accuracy_score(yTest, y_pred, normalize=True)
+Out[33]: 0.6591928251121076
+
+confusion_matrix(yTest, y_pred)
+Out[34]: 
+array([[  0,   0,  56],
+       [  0,   0,  20],
+       [  0,   0, 147]], dtype=int64)
+
+
+While training and testing the model with Embarked as a dependent variable we get an accuracy score of 65% which is higher then what we got with Pclass as the dependent variable of 56% but lower than what we got with Survived as a dependent variale of 76%
